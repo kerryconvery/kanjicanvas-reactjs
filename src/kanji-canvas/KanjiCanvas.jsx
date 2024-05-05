@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types'
 import refPatterns from "./ref-patterns";
 
 const strokeColors = ['#bf0000', '#bf5600', '#bfac00', '#7cbf00', '#26bf00', '#00bf2f', '#00bf85', '#00a2bf', '#004cbf', '#0900bf', '#5f00bf', '#b500bf', '#bf0072', '#bf001c', '#bf2626', '#bf6b26', '#bfaf26', '#89bf26', '#44bf26', '#26bf4c', '#26bf91', '#26a8bf', '#2663bf', '#2d26bf', '#7226bf', '#b726bf', '#bf2682', '#bf263d', '#bf4c4c', '#bf804c'];
@@ -13,7 +14,7 @@ let dotFlag = false;
 let recordedPattern = [];
 let currentLine = null;
 
-const KanjiCanvas = () => {
+const KanjiCanvas = ({ onRecognized }) => {
     const [initialized, setInitialized] = useState(false);
     const canvas = React.useRef();
     
@@ -777,7 +778,7 @@ const KanjiCanvas = () => {
       
       // fine classfication. returns best 100 matches for inputPattern
       // and candidate list (which should be provided by coarse classification
-      const fineClassification = (inputPattern, inputCandidates) => {
+      const refineClassification = (inputPattern, inputCandidates) => {
         const inputLength = inputPattern.length;
         let candidates = [];
         for(let i=0;i<Math.min(inputCandidates.length, 100);i++) {
@@ -798,14 +799,13 @@ const KanjiCanvas = () => {
             }
         }
         candidates.sort((a, b) => a[1] - b[1]);
-        let outStr = "";
+        const candidateStrings = []
         for(let i=0;i<Math.min(candidates.length, 10);i++) {
-            outStr += refPatterns[candidates[i][0]][0];
-            outStr += "  ";
+            candidateStrings.push(refPatterns[candidates[i][0]][0]);
         }
-        return outStr;
+        return candidateStrings;
       };
-    
+
       const recognize = () => {
         const mn = momentNormalize();
         const extractedFeatures = extractFeatures(mn, 20.);
@@ -815,13 +815,10 @@ const KanjiCanvas = () => {
         
         redraw();
 
-        // display candidates in the specified element
-        if (canvasElement.dataset.candidateList) {
-            document.getElementById(canvasElement.dataset.candidateList).innerHTML = fineClassification(extractedFeatures, candidates);
-        } 
-        // otherwise log the result to the console if no candidateList is specified
-        else {
-            return fineClassification(extractedFeatures, candidates);
+        const refinedClassfications =  refineClassification(extractedFeatures, candidates);
+
+        if (onRecognized) {
+            onRecognized(refinedClassfications)
         }
       };
     
@@ -845,6 +842,10 @@ const KanjiCanvas = () => {
             />
         </>
     )
+}
+
+KanjiCanvas.propTypes = {
+    onRecognized: PropTypes.func
 }
 
 export default KanjiCanvas;
