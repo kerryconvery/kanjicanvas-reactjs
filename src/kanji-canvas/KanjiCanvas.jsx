@@ -812,12 +812,13 @@ const KanjiCanvas = () => {
         let map = getMap(extractedFeatures, refPatterns[0][2], endPointDistance);
         map = completeMap(extractedFeatures, refPatterns[0][2], endPointDistance, map);
         const candidates = coarseClassification(extractedFeatures);
+        
         redraw();
+
         // display candidates in the specified element
         if (canvasElement.dataset.candidateList) {
             document.getElementById(canvasElement.dataset.candidateList).innerHTML = fineClassification(extractedFeatures, candidates);
         } 
-        
         // otherwise log the result to the console if no candidateList is specified
         else {
             return fineClassification(extractedFeatures, candidates);
