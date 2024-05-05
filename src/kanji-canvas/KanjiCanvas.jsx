@@ -14,6 +14,10 @@ let dotFlag = false;
 let recordedPattern = [];
 let currentLine = null;
 
+const RECOGNIZE_EVENT = 'RecognizeEvent';
+const ERASE_EVENT = 'EraseEvent';
+const UNDO_EVENT = 'UndoEvent';
+
 const KanjiCanvas = ({ onRecognized }) => {
     const [initialized, setInitialized] = useState(false);
     const canvas = React.useRef();
@@ -30,6 +34,18 @@ const KanjiCanvas = ({ onRecognized }) => {
         setInitialized(true);
       }
     });
+
+    useEffect(() => {
+        const recognizeEventListener = document.addEventListener(RECOGNIZE_EVENT, () => recognize());
+        const eraseEventListener = document.addEventListener(ERASE_EVENT, () => erase());
+        const undoEventListener = document.addEventListener(UNDO_EVENT, () => deleteLast())
+
+        return () => {
+            document.removeEventListener('recognize', recognizeEventListener)
+            document.removeEventListener('erase', eraseEventListener)
+            document.removeEventListener('undo', undoEventListener)
+        }
+    }, [])
 
     const init = () => {
         canvasElement.tabIndex = 0;
@@ -824,9 +840,6 @@ const KanjiCanvas = ({ onRecognized }) => {
     
     return (
         <>
-            <button onClick={recognize}>Recognize</button>
-            <button onClick={erase}>Erase</button>
-            <button onClick={deleteLast}>Undo</button>
             <canvas
                 style={{ border: '1px solid black' }}
                 id='canvas'
@@ -846,6 +859,14 @@ const KanjiCanvas = ({ onRecognized }) => {
 
 KanjiCanvas.propTypes = {
     onRecognized: PropTypes.func
+}
+
+export const useKanjiCanvas = () => {
+    return {
+        recognize: () => document.dispatchEvent(new Event(RECOGNIZE_EVENT)),
+        erase: () => document.dispatchEvent(new Event(ERASE_EVENT)),
+        undo: () => document.dispatchEvent(new Event(UNDO_EVENT)),
+    }
 }
 
 export default KanjiCanvas;
