@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import PropTypes from 'prop-types'
 import refPatterns from "./ref-patterns";
 
@@ -18,7 +18,7 @@ const RECOGNIZE_EVENT = 'RecognizeEvent';
 const ERASE_EVENT = 'EraseEvent';
 const UNDO_EVENT = 'UndoEvent';
 
-const KanjiCanvas = ({ onRecognized }) => {
+const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
     const [initialized, setInitialized] = useState(false);
     const canvas = React.useRef();
     
@@ -60,31 +60,6 @@ const KanjiCanvas = ({ onRecognized }) => {
         canvasContext.lineWidth = 4;
         canvasContext.stroke();
         canvasContext.closePath();
-    };
-  
-    const deleteLast = () => {
-        canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-        for (let i = 0; i < recordedPattern.length - 1; i++) {
-          const stroke_i = recordedPattern[i];
-      
-          for (let j = 0; j < stroke_i.length - 1; j++) {
-            prevX = stroke_i[j][0];
-            prevY = stroke_i[j][1];
-      
-            currX = stroke_i[j + 1][0];
-            currY = stroke_i[j + 1][1];
-      
-            draw();
-          }
-        }
-      
-        recordedPattern.pop();
-    };
-  
-    const erase = () => {
-        canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        recordedPattern = [];
     };
   
     const findxy = (res) => (e) => {
@@ -836,7 +811,39 @@ const KanjiCanvas = ({ onRecognized }) => {
         if (onRecognized) {
             onRecognized(refinedClassfications)
         }
-      };
+    }
+
+    
+    const deleteLast = () => {
+        canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+        for (let i = 0; i < recordedPattern.length - 1; i++) {
+        const stroke_i = recordedPattern[i];
+    
+        for (let j = 0; j < stroke_i.length - 1; j++) {
+            prevX = stroke_i[j][0];
+            prevY = stroke_i[j][1];
+    
+            currX = stroke_i[j + 1][0];
+            currY = stroke_i[j + 1][1];
+    
+            draw();
+        }
+        }
+    
+        recordedPattern.pop();
+    };
+
+    const erase = () => {
+        canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        recordedPattern = [];
+    };
+
+    useImperativeHandle(ref, () => ({
+        recognize,
+        erase,
+        undo: deleteLast
+    }))
     
     return (
         <>
@@ -855,18 +862,10 @@ const KanjiCanvas = ({ onRecognized }) => {
             />
         </>
     )
-}
+})
 
 KanjiCanvas.propTypes = {
     onRecognized: PropTypes.func
-}
-
-export const useKanjiCanvas = () => {
-    return {
-        recognize: () => document.dispatchEvent(new Event(RECOGNIZE_EVENT)),
-        erase: () => document.dispatchEvent(new Event(ERASE_EVENT)),
-        undo: () => document.dispatchEvent(new Event(UNDO_EVENT)),
-    }
 }
 
 export default KanjiCanvas;
