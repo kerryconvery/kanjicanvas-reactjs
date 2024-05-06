@@ -4,7 +4,7 @@ import refPatterns from "./ref-patterns";
 
 const strokeColors = ['#bf0000', '#bf5600', '#bfac00', '#7cbf00', '#26bf00', '#00bf2f', '#00bf85', '#00a2bf', '#004cbf', '#0900bf', '#5f00bf', '#b500bf', '#bf0072', '#bf001c', '#bf2626', '#bf6b26', '#bfaf26', '#89bf26', '#44bf26', '#26bf4c', '#26bf91', '#26a8bf', '#2663bf', '#2d26bf', '#7226bf', '#b726bf', '#bf2682', '#bf263d', '#bf4c4c', '#bf804c'];
 
-const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
+const KanjiCanvas = forwardRef(({ width, height, onRecognized }, ref) => {
     const canvasRef = useRef(null);
     const canvasElement = useRef(null);
     const canvasContext = useRef(null);
@@ -842,6 +842,8 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
     return (
         <canvas
             ref={canvasRef}
+            width={width}
+            height={height}
             onMouseMove={ findxy('move') }    
             onMouseDown={ findxy('down') }
             onMouseUp={ findxy('up') }
@@ -855,6 +857,8 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
 })
 
 KanjiCanvas.propTypes = {
+    width: PropTypes.number,
+    height: PropTypes.number,
     onRecognized: PropTypes.func
 }
 
