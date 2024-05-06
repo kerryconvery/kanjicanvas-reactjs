@@ -1,65 +1,43 @@
-import React, { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
+import React, { useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
 import PropTypes from 'prop-types'
 import refPatterns from "./ref-patterns";
 
 const strokeColors = ['#bf0000', '#bf5600', '#bfac00', '#7cbf00', '#26bf00', '#00bf2f', '#00bf85', '#00a2bf', '#004cbf', '#0900bf', '#5f00bf', '#b500bf', '#bf0072', '#bf001c', '#bf2626', '#bf6b26', '#bfaf26', '#89bf26', '#44bf26', '#26bf4c', '#26bf91', '#26a8bf', '#2663bf', '#2d26bf', '#7226bf', '#b726bf', '#bf2682', '#bf263d', '#bf4c4c', '#bf804c'];
 
-let flagOver = false;
-let flagDown = false;
-let prevX = 0;
-let currX = 0;
-let prevY = 0;
-let currY = 0;
-let dotFlag = false;
-let recordedPattern = [];
-let currentLine = null;
-
-const RECOGNIZE_EVENT = 'RecognizeEvent';
-const ERASE_EVENT = 'EraseEvent';
-const UNDO_EVENT = 'UndoEvent';
-
 const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
-    const [initialized, setInitialized] = useState(false);
-    const canvas = React.useRef();
+    const canvasRef = useRef(null);
+    const canvasElement = useRef(null);
+    const canvasContext = useRef(null);
+    const flagOver = useRef(false);
+    const flagDown = useRef(false);
+    const prevX = useRef(0);
+    const currX = useRef(0);
+    const prevY = useRef(0);
+    const currY = useRef(0);
+    const dotFlag = useRef(false);
+    const recordedPattern = useRef([]);
+    const currentLine = useRef(null);
     
-    let canvasElement = null;
-    let canvasContext = null;
-
     useEffect(() => {
-      canvasElement = canvas.current;
-      canvasContext = canvasElement.getContext('2d');
+      canvasElement.current = canvasRef.current;
+      canvasContext.current = canvasElement.current.getContext('2d');
 
-      if (!initialized) {
-        init();
-        setInitialized(true);
-      }
-    });
-
-    useEffect(() => {
-        const recognizeEventListener = document.addEventListener(RECOGNIZE_EVENT, () => recognize());
-        const eraseEventListener = document.addEventListener(ERASE_EVENT, () => erase());
-        const undoEventListener = document.addEventListener(UNDO_EVENT, () => deleteLast())
-
-        return () => {
-            document.removeEventListener('recognize', recognizeEventListener)
-            document.removeEventListener('erase', eraseEventListener)
-            document.removeEventListener('undo', undoEventListener)
-        }
-    }, [])
+      init();
+    }, []);
 
     const init = () => {
-        canvasElement.tabIndex = 0;
+        canvasElement.current.tabIndex = 0;
     }
 
     const draw = (color) => {
-        canvasContext.beginPath();
-        canvasContext.moveTo(prevX, prevY);
-        canvasContext.lineTo(currX, currY);
-        canvasContext.strokeStyle = color ?? '#333';
-        canvasContext.lineCap = 'round';
-        canvasContext.lineWidth = 4;
-        canvasContext.stroke();
-        canvasContext.closePath();
+        canvasContext.current.beginPath();
+        canvasContext.current.moveTo(prevX.current, prevY.current);
+        canvasContext.current.lineTo(currX.current, currY.current);
+        canvasContext.current.strokeStyle = color ?? '#333';
+        canvasContext.current.lineCap = 'round';
+        canvasContext.current.lineWidth = 4;
+        canvasContext.current.stroke();
+        canvasContext.current.closePath();
     };
   
     const findxy = (res) => (e) => {
@@ -68,89 +46,89 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
         if (touch) e.preventDefault(); // prevent scrolling while drawing to the canvas
         
         if (res == 'down') {
-          const rect = canvasElement.getBoundingClientRect();
-          prevX = currX;
-          prevY = currY;
-          currX = (touch ? touch.clientX : e.clientX) - rect.left;
-          currY = (touch ? touch.clientY : e.clientY) - rect.top;
-          currentLine = [[currX, currY]];
+          const rect = canvasElement.current.getBoundingClientRect();
+          prevX.current = currX.current;
+          prevY.current = currY.current;
+          currX.current = (touch ? touch.clientX : e.clientX) - rect.left;
+          currY.current = (touch ? touch.clientY : e.clientY) - rect.top;
+          currentLine.current = [[currX.current, currY.current]];
           
-          flagDown = true;
-          flagOver = true;
-          dotFlag = true;
-          if (dotFlag) {
-            canvasContext.beginPath();
-            canvasContext.fillRect(currX, currY, 2, 2);
-            canvasContext.closePath();
-            dotFlag = false;
+          flagDown.current = true;
+          flagOver.current = true;
+          dotFlag.current = true;
+          if (dotFlag.current) {
+            canvasContext.current.beginPath();
+            canvasContext.current.fillRect(currX.current, currY.current, 2, 2);
+            canvasContext.current.closePath();
+            dotFlag.current = false;
           }
         }
         if (res == 'up') {
-          flagDown = false;
-          if (flagOver) {
-            recordedPattern.push(currentLine);
+          flagDown.current = false;
+          if (flagOver.current) {
+            recordedPattern.current.push(currentLine.current);
           }
         }
         
         if (res == "out") {
-          flagOver = false;
-          if (flagDown) {
-            recordedPattern.push(currentLine);
+          flagOver.current = false;
+          if (flagDown.current) {
+            recordedPattern.current.push(currentLine.current);
           }
-          flagDown = false;
+          flagDown.current = false;
         }
         
         if (res == 'move') {
-          if (flagOver && flagDown) {
-            const rect = canvasElement.getBoundingClientRect();
-            prevX = currX;
-            prevY = currY;
-            currX = (touch ? touch.clientX : e.clientX) - rect.left;
-            currY = (touch ? touch.clientY : e.clientY) - rect.top;
-            currentLine.push([prevX, prevY]);
-            currentLine.push([currX, currY]);
+          if (flagOver.current && flagDown.current) {
+            const rect = canvasElement.current.getBoundingClientRect();
+            prevX.current = currX.current;
+            prevY.current = currY.current;
+            currX.current = (touch ? touch.clientX : e.clientX) - rect.left;
+            currY.current = (touch ? touch.clientY : e.clientY) - rect.top;
+            currentLine.current.push([prevX.current, prevY.current]);
+            currentLine.current.push([currX.current, currY.current]);
             draw();
           }
         }
     };
   
     // redraw to current canvas according to 
-    // what is currently stored in KanjiCanvas["recordedPattern_" + id]
+    // what is currently stored in KanjiCanvas["recordedPattern.current_" + id]
     // add numbers to each stroke
     const redraw = () => {
-        canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasContext.current.clearRect(0, 0, canvasElement.current.width, canvasElement.current.height);
 
-        for (let i = 0; i < recordedPattern.length; i++) {
-          const stroke_i = recordedPattern[i];
+        for (let i = 0; i < recordedPattern.current.length; i++) {
+          const stroke_i = recordedPattern.current[i];
       
           for (let j = 0; j < stroke_i.length - 1; j++) {
-            prevX = stroke_i[j][0];
-            prevY = stroke_i[j][1];
+            prevX.current = stroke_i[j][0];
+            prevY.current = stroke_i[j][1];
       
-            currX = stroke_i[j + 1][0];
-            currY = stroke_i[j + 1][1];
+            currX.current = stroke_i[j + 1][0];
+            currY.current = stroke_i[j + 1][1];
       
             draw();
           }
         }
   
       // draw stroke numbers
-      if (canvasElement.dataset.strokeNumbers != 'false') {
-        for (let i = 0; i < recordedPattern.length; i++) {
-            const stroke_i = recordedPattern[i];
+      if (canvasElement.current.dataset.strokeNumbers != 'false') {
+        for (let i = 0; i < recordedPattern.current.length; i++) {
+            const stroke_i = recordedPattern.current[i];
             const x = stroke_i[Math.floor(stroke_i.length / 2)][0] + 5;
             const y = stroke_i[Math.floor(stroke_i.length / 2)][1] - 5;
         
-            canvasContext.font = "20px Arial";
+            canvasContext.current.font = "20px Arial";
         
             // outline
-            canvasContext.lineWidth = 3;
-            canvasContext.strokeStyle = alterHex(strokeColors[i] ? strokeColors[i] : "#333333", 60, 'dec');
-            canvasContext.strokeText((i + 1).toString(), x, y);
+            canvasContext.current.lineWidth = 3;
+            canvasContext.current.strokeStyle = alterHex(strokeColors[i] ? strokeColors[i] : "#333333", 60, 'dec');
+            canvasContext.current.strokeText((i + 1).toString(), x, y);
         
             // fill
-            canvasContext.fillStyle = strokeColors[i] ? strokeColors[i] : "#333";
-            canvasContext.fillText((i + 1).toString(), x, y);
+            canvasContext.current.fillStyle = strokeColors[i] ? strokeColors[i] : "#333";
+            canvasContext.current.fillText((i + 1).toString(), x, y);
           }
       }
     };
@@ -184,7 +162,7 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
     };
     
   
-    // linear normalization for KanjiCanvas["recordedPattern_" + id]
+    // linear normalization for KanjiCanvas["recordedPattern.current_" + id]
     const normalizeLinear = () => {
       const normalizedPattern = new Array();
       const newHeight = 256;
@@ -194,8 +172,8 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
       let yMin = 256;
       let yMax = 0;
       // first determine drawn character width / length
-      for (let i = 0; i < recordedPattern.length; i++) {
-        const stroke_i = recordedPattern[i];
+      for (let i = 0; i < recordedPattern.current.length; i++) {
+        const stroke_i = recordedPattern.current[i];
         for (let j = 0; j < stroke_i.length; j++) {
           const x = stroke_i[j][0];
           const y = stroke_i[j][1];
@@ -216,8 +194,8 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
       const oldHeight = Math.abs(yMax - yMin);
       const oldWidth  = Math.abs(xMax - xMin);
   
-      for (let i = 0; i < recordedPattern.length; i++) {
-        const stroke_i = recordedPattern[i];
+      for (let i = 0; i < recordedPattern.current.length; i++) {
+        const stroke_i = recordedPattern.current[i];
         const normalized_stroke_i = [];
         for (let j = 0; j < stroke_i.length; j++) {
           const x = stroke_i[j][0];
@@ -228,7 +206,7 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
         }
         normalizedPattern.push(normalized_stroke_i);
       }
-      recordedPattern = normalizedPattern;
+      recordedPattern.current = normalizedPattern;
       redraw();
     };
     
@@ -349,7 +327,7 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
         let yMin = newHeight;
         let yMax = 0;
         
-        for (const stroke of recordedPattern) {
+        for (const stroke of recordedPattern.current) {
           for (const [x, y] of stroke) {
             if (x < xMin) {
               xMin = x;
@@ -383,9 +361,9 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
         const xOffset = (newWidth - aranWidth) / 2;
         const yOffset = (newHeight - aranHeight) / 2;
         
-        const m00_ = m00(recordedPattern);
-        const m01_ = m01(recordedPattern);
-        const m10_ = m10(recordedPattern);
+        const m00_ = m00(recordedPattern.current);
+        const m01_ = m01(recordedPattern.current);
+        const m10_ = m10(recordedPattern.current);
 
         const xc = m10_ / m00_;
         const yc = m01_ / m00_;
@@ -393,13 +371,13 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
         const xc_half = aranWidth / 2;
         const yc_half = aranHeight / 2;
         
-        const mu20_ = mu20(recordedPattern, xc);
-        const mu02_ = mu02(recordedPattern, yc);
+        const mu20_ = mu20(recordedPattern.current, xc);
+        const mu02_ = mu02(recordedPattern.current, yc);
         
         const alpha = aranWidth / (4 * Math.sqrt(mu20_ / m00_)) || 0;
         const beta = aranHeight / (4 * Math.sqrt(mu02_ / m00_)) || 0;
         const nf = [];
-        for (const stroke of recordedPattern) {
+        for (const stroke of recordedPattern.current) {
           const nsi = stroke.map(([x, y]) => {
             const newX = alpha * (x - xc) + xc_half;
             const newY = beta * (y - yc) + yc_half;
@@ -815,29 +793,44 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
 
     
     const deleteLast = () => {
-        canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasContext.current.clearRect(0, 0, canvasElement.current.width, canvasElement.current.height);
 
-        for (let i = 0; i < recordedPattern.length - 1; i++) {
-        const stroke_i = recordedPattern[i];
+        for (let i = 0; i < recordedPattern.current.length - 1; i++) {
+        const stroke_i = recordedPattern.current[i];
     
         for (let j = 0; j < stroke_i.length - 1; j++) {
-            prevX = stroke_i[j][0];
-            prevY = stroke_i[j][1];
+            prevX.current = stroke_i[j][0];
+            prevY.current = stroke_i[j][1];
     
-            currX = stroke_i[j + 1][0];
-            currY = stroke_i[j + 1][1];
+            currX.current = stroke_i[j + 1][0];
+            currY.current = stroke_i[j + 1][1];
     
             draw();
         }
         }
     
-        recordedPattern.pop();
+        recordedPattern.current.pop();
     };
 
     const erase = () => {
-        canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        recordedPattern = [];
+        canvasContext.current.clearRect(0, 0, canvasElement.current.width, canvasElement.current.height);
+        recordedPattern.current = [];
     };
+    
+    const drawAxis = (startPosition, endPosition) => {
+        canvasContext.current.beginPath();
+        canvasContext.current.moveTo(startPosition.x, startPosition.y);
+        canvasContext.current.lineTo(endPosition.x, endPosition.y);
+        canvasContext.current.strokeStyle = color ?? '#333';
+        canvasContext.current.lineCap = 'round';
+        canvasContext.current.lineWidth = 4;
+        canvasContext.current.stroke();
+        canvasContext.current.closePath();     
+    }
+
+    const drawHorizontalAxis = () => {
+
+    }
 
     useImperativeHandle(ref, () => ({
         recognize,
@@ -846,26 +839,33 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
     }))
     
     return (
-        <>
-            <canvas
-                style={{ border: '1px solid black' }}
-                id='canvas'
-                ref={canvas}
-                onMouseMove={ findxy('move') }    
-                onMouseDown={ findxy('down') }
-                onMouseUp={ findxy('up') }
-                onMouseOut={ findxy('out') }
-                onMouseOver={ findxy('over') }
-                onTouchMove={ findxy('move') }
-                onTouchStart={ findxy('down') }
-                onTouchEnd={ findxy('up') }
-            />
-        </>
+        <canvas
+            ref={canvasRef}
+            onMouseMove={ findxy('move') }    
+            onMouseDown={ findxy('down') }
+            onMouseUp={ findxy('up') }
+            onMouseOut={ findxy('out') }
+            onMouseOver={ findxy('over') }
+            onTouchMove={ findxy('move') }
+            onTouchStart={ findxy('down') }
+            onTouchEnd={ findxy('up') }
+        />
     )
 })
 
 KanjiCanvas.propTypes = {
     onRecognized: PropTypes.func
+}
+
+export const useKanjiCanvas = () => {
+    const ref = useRef(null);
+
+    return {
+        recognize: () => ref.current.recognize(),
+        erase: () => ref.current.erase(),
+        undo: () => ref.current.undo(),
+        ref,
+    }
 }
 
 export default KanjiCanvas;
