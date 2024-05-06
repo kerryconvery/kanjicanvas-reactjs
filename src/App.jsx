@@ -2,7 +2,7 @@ import React from 'react'
 import KanjiCanvas, { useKanjiCanvas } from "./kanji-canvas/KanjiCanvas";
 
 const App = () => {
-    const { recognize, erase, undo, ref } = useKanjiCanvas();
+    const { recognize, erase, undo, canvasRef } = useKanjiCanvas();
 
     const onKanjiRecognized = (matchedKanji) => {
         console.log('matched kanji', matchedKanji)
@@ -14,7 +14,7 @@ const App = () => {
             <button onClick={erase}>Erase</button>
             <button onClick={undo}>Undo</button>
             <KanjiCanvas
-                ref={ref}
+                ref={canvasRef}
                 onRecognized={onKanjiRecognized}
             />
         </>

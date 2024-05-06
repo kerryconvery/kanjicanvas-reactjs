@@ -768,6 +768,7 @@ const KanjiCanvas = forwardRef(({ onRecognized }, ref) => {
             }
         }
         candidates.sort((a, b) => a[1] - b[1]);
+
         const candidateStrings = []
         for(let i=0;i<Math.min(candidates.length, 10);i++) {
             candidateStrings.push(refPatterns[candidates[i][0]][0]);
@@ -858,13 +859,13 @@ KanjiCanvas.propTypes = {
 }
 
 export const useKanjiCanvas = () => {
-    const ref = useRef(null);
+    const canvasRef = useRef(null);
 
     return {
-        recognize: () => ref.current.recognize(),
-        erase: () => ref.current.erase(),
-        undo: () => ref.current.undo(),
-        ref,
+        recognize: () => canvasRef.current.recognize(),
+        erase: () => canvasRef.current.erase(),
+        undo: () => canvasRef.current.undo(),
+        canvasRef,
     }
 }
 
