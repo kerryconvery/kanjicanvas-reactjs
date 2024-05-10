@@ -1,21 +1,30 @@
 {
   "name": "kanjicanvas-reactjs",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "vite build",
+    "build": "vite build --mode build",
     "lint": "eslint .",
-    "preview": "pnpm build && vite preview"
+    "watch": "vite"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
+  "peerDependencies": {
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "vite": "^5.2.11"
-  }
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.2.1"
+  },
+  "files": ["dist"]
 }

@@ -3,8 +3,9 @@ import PropTypes from 'prop-types'
 import refPatterns from "./ref-patterns";
 
 const strokeColors = ['#bf0000', '#bf5600', '#bfac00', '#7cbf00', '#26bf00', '#00bf2f', '#00bf85', '#00a2bf', '#004cbf', '#0900bf', '#5f00bf', '#b500bf', '#bf0072', '#bf001c', '#bf2626', '#bf6b26', '#bfaf26', '#89bf26', '#44bf26', '#26bf4c', '#26bf91', '#26a8bf', '#2663bf', '#2d26bf', '#7226bf', '#b726bf', '#bf2682', '#bf263d', '#bf4c4c', '#bf804c'];
+const defaultAxesColor = '#BCBDC3';
 
-const KanjiCanvas = forwardRef(({ width, height, onRecognized }, ref) => {
+export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized }, ref) => {
     const canvasRef = useRef(null);
     const canvasElement = useRef(null);
     const canvasContext = useRef(null);
@@ -27,6 +28,7 @@ const KanjiCanvas = forwardRef(({ width, height, onRecognized }, ref) => {
 
     const init = () => {
         canvasElement.current.tabIndex = 0;
+        drawAxes();
     }
 
     const draw = (color) => {
@@ -39,6 +41,11 @@ const KanjiCanvas = forwardRef(({ width, height, onRecognized }, ref) => {
         canvasContext.current.stroke();
         canvasContext.current.closePath();
     };
+
+    const clearCanvas = () => {
+      canvasContext.current.clearRect(0, 0, canvasElement.current.width, canvasElement.current.height);
+      drawAxes();
+    }
   
     const findxy = (res) => (e) => {
         const touch = e.changedTouches ? e.changedTouches[0] : null;
@@ -96,7 +103,7 @@ const KanjiCanvas = forwardRef(({ width, height, onRecognized }, ref) => {
     // what is currently stored in KanjiCanvas["recordedPattern.current_" + id]
     // add numbers to each stroke
     const redraw = () => {
-        canvasContext.current.clearRect(0, 0, canvasElement.current.width, canvasElement.current.height);
+        clearCanvas();
 
         for (let i = 0; i < recordedPattern.current.length; i++) {
           const stroke_i = recordedPattern.current[i];
@@ -794,7 +801,7 @@ const KanjiCanvas = forwardRef(({ width, height, onRecognized }, ref) => {
 
     
     const deleteLast = () => {
-        canvasContext.current.clearRect(0, 0, canvasElement.current.width, canvasElement.current.height);
+        clearCanvas();
 
         for (let i = 0; i < recordedPattern.current.length - 1; i++) {
         const stroke_i = recordedPattern.current[i];
@@ -813,24 +820,53 @@ const KanjiCanvas = forwardRef(({ width, height, onRecognized }, ref) => {
         recordedPattern.current.pop();
     };
 
+
     const erase = () => {
-        canvasContext.current.clearRect(0, 0, canvasElement.current.width, canvasElement.current.height);
-        recordedPattern.current = [];
+      clearCanvas();  
+      recordedPattern.current = [];
     };
     
     const drawAxis = (startPosition, endPosition) => {
         canvasContext.current.beginPath();
         canvasContext.current.moveTo(startPosition.x, startPosition.y);
         canvasContext.current.lineTo(endPosition.x, endPosition.y);
-        canvasContext.current.strokeStyle = color ?? '#333';
+        canvasContext.current.strokeStyle = axesColor ?? defaultAxesColor;
         canvasContext.current.lineCap = 'round';
-        canvasContext.current.lineWidth = 4;
+        canvasContext.current.lineWidth = 1;
+        canvasContext.current.setLineDash([2,3]);
         canvasContext.current.stroke();
         canvasContext.current.closePath();     
     }
 
     const drawHorizontalAxis = () => {
+      const startPosition = {
+        x: 0,
+        y: canvasElement.current.height / 2
+      }
 
+      const endPosition = {
+        x: canvasElement.current.width,
+        y: canvasElement.current.height / 2
+      }
+      drawAxis(startPosition, endPosition)
+    }
+
+    const drawVerticalAxis = () => {
+      const startPosition = {
+        x: canvasElement.current.width / 2,
+        y: 0
+      }
+
+      const endPosition = {
+        x: canvasElement.current.width / 2,
+        y: canvasElement.current.height
+      }
+      drawAxis(startPosition, endPosition)
+    }
+
+    const drawAxes = () => {
+      drawHorizontalAxis()
+      drawVerticalAxis()
     }
 
     useImperativeHandle(ref, () => ({
@@ -839,6 +875,7 @@ const KanjiCanvas = forwardRef(({ width, height, onRecognized }, ref) => {
         undo: deleteLast
     }))
     
+
     return (
         <canvas
             ref={canvasRef}
@@ -857,8 +894,9 @@ const KanjiCanvas = forwardRef(({ width, height, onRecognized }, ref) => {
 })
 
 KanjiCanvas.propTypes = {
-    width: PropTypes.number,
-    height: PropTypes.number,
+    axesColor: PropTypes.string,
+    width: PropTypes.string,
+    height: PropTypes.string,
     onRecognized: PropTypes.func
 }
 
@@ -872,5 +910,3 @@ export const useKanjiCanvas = () => {
         canvasRef,
     }
 }
-
-export default KanjiCanvas;
