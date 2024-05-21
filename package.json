@@ -1,6 +1,6 @@
 {
   "name": "kanjicanvas-reactjs",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -9,22 +9,28 @@
     "lint": "eslint .",
     "watch": "vite"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kerryconvery/kanjicanvas-reactjs.git"
+  },
+  "homepage": "https://github.com/kerryconvery/kanjicanvas-reactjs",
+  "contributors": [
+    "Kerry Convery <kerry.convery@gmail.com>"
+  ],
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Kerry Convery",
+  "license": "MIT",
   "peerDependencies": {
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "vite": "^5.2.11"
-  },
-  "dependencies": {
-    "@vitejs/plugin-react": "^4.2.1"
   },
   "files": ["dist"]
 }
