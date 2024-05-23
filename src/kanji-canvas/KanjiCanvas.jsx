@@ -1,11 +1,12 @@
-import React, { useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { useLayoutEffect, forwardRef, useImperativeHandle, useRef } from 'react';
 import PropTypes from 'prop-types'
+import { createCanvas } from 'vb-canvas'
 import refPatterns from "./ref-patterns";
 
 const strokeColors = ['#bf0000', '#bf5600', '#bfac00', '#7cbf00', '#26bf00', '#00bf2f', '#00bf85', '#00a2bf', '#004cbf', '#0900bf', '#5f00bf', '#b500bf', '#bf0072', '#bf001c', '#bf2626', '#bf6b26', '#bfaf26', '#89bf26', '#44bf26', '#26bf4c', '#26bf91', '#26a8bf', '#2663bf', '#2d26bf', '#7226bf', '#b726bf', '#bf2682', '#bf263d', '#bf4c4c', '#bf804c'];
 const defaultAxesColor = '#BCBDC3';
 
-export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized }, ref) => {
+export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized, onErase, onUndo }, ref) => {
     const canvasRef = useRef(null);
     const canvasElement = useRef(null);
     const canvasContext = useRef(null);
@@ -18,10 +19,19 @@ export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized 
     const dotFlag = useRef(false);
     const recordedPattern = useRef([]);
     const currentLine = useRef(null);
-    
-    useEffect(() => {
+
+    useLayoutEffect(() => {
+      const { ctx } = createCanvas({
+        viewBox: [0, 0, 500, 500],
+        target: '#canvas-wrapper',
+        static: true,
+        autoAspectRatio: true,
+        scaleMode: 'fill'
+      })
+
       canvasElement.current = canvasRef.current;
-      canvasContext.current = canvasElement.current.getContext('2d');
+      // canvasContext.current = canvasElement.current.getContext('2d');
+      canvasContext.current = ctx;
 
       init();
     }, []);
@@ -804,26 +814,33 @@ export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized 
         clearCanvas();
 
         for (let i = 0; i < recordedPattern.current.length - 1; i++) {
-        const stroke_i = recordedPattern.current[i];
-    
-        for (let j = 0; j < stroke_i.length - 1; j++) {
-            prevX.current = stroke_i[j][0];
-            prevY.current = stroke_i[j][1];
-    
-            currX.current = stroke_i[j + 1][0];
-            currY.current = stroke_i[j + 1][1];
-    
-            draw();
-        }
+          const stroke_i = recordedPattern.current[i];
+      
+          for (let j = 0; j < stroke_i.length - 1; j++) {
+              prevX.current = stroke_i[j][0];
+              prevY.current = stroke_i[j][1];
+      
+              currX.current = stroke_i[j + 1][0];
+              currY.current = stroke_i[j + 1][1];
+      
+              draw();
+          }
         }
     
         recordedPattern.current.pop();
+        
+        if (onUndo) {
+          onUndo();
+        }
     };
 
 
     const erase = () => {
       clearCanvas();  
       recordedPattern.current = [];
+      if (onErase) {
+        onErase();
+      }
     };
     
     const drawAxis = (startPosition, endPosition) => {
@@ -877,8 +894,23 @@ export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized 
     
 
     return (
-        <canvas
+        // <canvas
+        //     ref={canvasRef}
+        //     width={width}
+        //     height={height}
+        //     onMouseMove={ findxy('move') }    
+        //     onMouseDown={ findxy('down') }
+        //     onMouseUp={ findxy('up') }
+        //     onMouseOut={ findxy('out') }
+        //     onMouseOver={ findxy('over') }
+        //     onTouchMove={ findxy('move') }
+        //     onTouchStart={ findxy('down') }
+        //     onTouchEnd={ findxy('up') }
+        // />
+
+        <div
             ref={canvasRef}
+            id="canvas-wrapper"
             width={width}
             height={height}
             onMouseMove={ findxy('move') }    
@@ -897,7 +929,9 @@ KanjiCanvas.propTypes = {
     axesColor: PropTypes.string,
     width: PropTypes.string,
     height: PropTypes.string,
-    onRecognized: PropTypes.func
+    onRecognized: PropTypes.func,
+    onUndo: PropTypes.func,
+    onErase: PropTypes.func
 }
 
 export const useKanjiCanvas = () => {

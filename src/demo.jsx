@@ -4,12 +4,7 @@ import App from './App'
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-root.render(
-    <>
-        <div>Kanji Canvas Demo</div>
-        <App/>
-    </>
-);
+root.render(<App/>);
 
 
 

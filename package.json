@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "vite build --mode build",
     "lint": "eslint .",
-    "watch": "vite"
+    "start": "vite"
   },
   "repository": {
     "type": "git",
@@ -32,5 +32,10 @@
     "react-dom": "^18.3.1",
     "vite": "^5.2.11"
   },
-  "files": ["dist"]
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "vb-canvas": "^0.1.8"
+  }
 }
