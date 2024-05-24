@@ -6,9 +6,9 @@ A React adaption of the [Kanji Canvas](https://github.com/asdfjkl/kanjicanvas) l
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | axesColor | string | #BCBDC3 | Color of the axes |
-| width | string | | Width of the canvas |
-| height | string | | Height of the canvas |
 | onRecognized | function | | Callback function that is called when a kanji character is recognized and returned as a string array of matched kanji characters |
+| onErase | function | | Callback function that is called when the drawing is clears |
+| onUndo | function | | Callback function that is called when the last change is undone |
 
 ### Usage
 ```
