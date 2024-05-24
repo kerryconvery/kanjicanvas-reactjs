@@ -8,10 +8,16 @@ importers:
 
   .:
     dependencies:
+      canvas-fit:
+        specifier: ^1.5.0
+        version: 1.5.0
+      react-responsive-canvas:
+        specifier: ^1.0.2
+        version: 1.0.2(react@18.3.1)
+    devDependencies:
       '@vitejs/plugin-react':
         specifier: ^4.2.1
         version: 4.2.1(vite@5.2.11)
-    devDependencies:
       prop-types:
         specifier: ^15.8.1
         version: 15.8.1
@@ -403,6 +409,9 @@ packages:
   caniuse-lite@1.0.30001616:
     resolution: {integrity: sha512-RHVYKov7IcdNjVHJFNY/78RdG4oGVjbayxv8u5IO74Wv7Hlq4PnJE6mo/OjFijjVFNy5ijnCt6H3IIo4t+wfEw==}
 
+  canvas-fit@1.5.0:
+    resolution: {integrity: sha512-onIcjRpz69/Hx5bB5HGbYKUF2uC6QT6Gp+pfpGm3A7mPfcluSLV5v4Zu+oflDUwLdUw0rLIBhUbi0v8hM4FJQQ==}
+
   chalk@2.4.2:
     resolution: {integrity: sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==}
     engines: {node: '>=4'}
@@ -427,6 +436,9 @@ packages:
 
   electron-to-chromium@1.4.757:
     resolution: {integrity: sha512-jftDaCknYSSt/+KKeXzH3LX5E2CvRLm75P3Hj+J/dv3CL0qUYcOt13d5FN1NiL5IJbbhzHrb3BomeG2tkSlZmw==}
+
+  element-size@1.1.1:
+    resolution: {integrity: sha512-eaN+GMOq/Q+BIWy0ybsgpcYImjGIdNLyjLFJU4XsLHXYQao5jCNb36GyN6C2qwmDDYSfIBmKpPpr4VnBdLCsPQ==}
 
   esbuild@0.20.2:
     resolution: {integrity: sha512-WdOOppmUNU+IbZ0PaDiTst80zjnrOkyJNHoKupIcVyU8Lvla3Ugx94VzkQ32Ijqd7UhHJy75gNWDMUekcrSJ6g==}
@@ -514,6 +526,11 @@ packages:
   react-refresh@0.14.2:
     resolution: {integrity: sha512-jCvmsr+1IUSMUyzOkRcvnVbX3ZYC6g9TDrDbFuFmRDq7PD4yaGbLKNQL6k2jnArV8hjYxh7hVhAZB6s9HDGpZA==}
     engines: {node: '>=0.10.0'}
+
+  react-responsive-canvas@1.0.2:
+    resolution: {integrity: sha512-r1cV0LPsxlMDdeJ53u0obUIxFPKCCD7/T3XJ/5wj0XmJi/u3qO27h0RZ3uZowSgVg+bilEKosDKxVtEr76v/JA==}
+    peerDependencies:
+      react: '>=15'
 
   react@18.3.1:
     resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
@@ -906,6 +923,10 @@ snapshots:
 
   caniuse-lite@1.0.30001616: {}
 
+  canvas-fit@1.5.0:
+    dependencies:
+      element-size: 1.1.1
+
   chalk@2.4.2:
     dependencies:
       ansi-styles: 3.2.1
@@ -925,6 +946,8 @@ snapshots:
       ms: 2.1.2
 
   electron-to-chromium@1.4.757: {}
+
+  element-size@1.1.1: {}
 
   esbuild@0.20.2:
     optionalDependencies:
@@ -1010,6 +1033,10 @@ snapshots:
   react-is@16.13.1: {}
 
   react-refresh@0.14.2: {}
+
+  react-responsive-canvas@1.0.2(react@18.3.1):
+    dependencies:
+      react: 18.3.1
 
   react@18.3.1:
     dependencies:

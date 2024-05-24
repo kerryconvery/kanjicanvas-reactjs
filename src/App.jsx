@@ -9,19 +9,24 @@ const App = () => {
     }
 
     return (
-        <>
+        <div className='canvas-box' style={{  margin: 'auto' }}>
             <button onClick={recognize}>Recognize</button>
             <button onClick={erase}>Erase</button>
             <button onClick={undo}>Undo</button>
-            <div style={{ borderStyle: 'solid', borderWidth: '1px', borderColor: 'black', width: "500px", height: "500px" }}>
-            <KanjiCanvas
-                ref={canvasRef}
-                width="500px"
-                height="500px"
-                onRecognized={onKanjiRecognized}
-            />
+            <div style={{
+                position: 'relative',
+                borderStyle: 'solid',
+                borderWidth: '1px',
+                borderColor: 'black',
+                width: "100%",
+                height: "100%"
+            }}>
+                <KanjiCanvas
+                    ref={canvasRef}
+                    onRecognized={onKanjiRecognized}
+                />
             </div>
-        </>
+        </div>
     )
 }
 

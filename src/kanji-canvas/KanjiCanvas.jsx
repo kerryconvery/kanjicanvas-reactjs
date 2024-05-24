@@ -1,11 +1,11 @@
-import React, { useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useLayoutEffect } from 'react';
 import PropTypes from 'prop-types'
 import refPatterns from "./ref-patterns";
 
 const strokeColors = ['#bf0000', '#bf5600', '#bfac00', '#7cbf00', '#26bf00', '#00bf2f', '#00bf85', '#00a2bf', '#004cbf', '#0900bf', '#5f00bf', '#b500bf', '#bf0072', '#bf001c', '#bf2626', '#bf6b26', '#bfaf26', '#89bf26', '#44bf26', '#26bf4c', '#26bf91', '#26a8bf', '#2663bf', '#2d26bf', '#7226bf', '#b726bf', '#bf2682', '#bf263d', '#bf4c4c', '#bf804c'];
 const defaultAxesColor = '#BCBDC3';
 
-export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized }, ref) => {
+export const KanjiCanvas = forwardRef(({ axesColor, onRecognized, onErase, onUndo }, ref) => {
     const canvasRef = useRef(null);
     const canvasElement = useRef(null);
     const canvasContext = useRef(null);
@@ -19,12 +19,29 @@ export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized 
     const recordedPattern = useRef([]);
     const currentLine = useRef(null);
     
-    useEffect(() => {
+    useLayoutEffect(() => {
       canvasElement.current = canvasRef.current;
       canvasContext.current = canvasElement.current.getContext('2d');
 
+      window.addEventListener('resize', onResize, false)
+      resizeCanvasToDisplaySize(canvasElement.current)
       init();
     }, []);
+
+    const onResize = () => {
+      resizeCanvasToDisplaySize(canvasElement.current);
+    }
+
+    function resizeCanvasToDisplaySize(canvas) {
+      const { width, height } = canvas.getBoundingClientRect()
+  
+      if (canvas.width !== width || canvas.height !== height) {
+        erase()
+        canvas.width = width
+        canvas.height = height
+        drawAxes();
+      }
+    }
 
     const init = () => {
         canvasElement.current.tabIndex = 0;
@@ -118,7 +135,29 @@ export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized 
             draw();
           }
         }
-  
+    };
+
+    const scaleImage = () => {
+      clearCanvas();
+
+      for (let i = 0; i < recordedPattern.current.length; i++) {
+        const stroke_i = recordedPattern.current[i];
+    
+        for (let j = 0; j < stroke_i.length - 1; j++) {
+          prevX.current = stroke_i[j][0];
+          prevY.current = stroke_i[j][1];
+    
+          currX.current = stroke_i[j + 1][0];
+          currY.current = stroke_i[j + 1][1];
+    
+          draw();
+        }
+      }
+    };
+    
+    const drawStrokeNumbers = () => {
+      redraw();
+
       // draw stroke numbers
       if (canvasElement.current.dataset.strokeNumbers != 'false') {
         for (let i = 0; i < recordedPattern.current.length; i++) {
@@ -138,8 +177,7 @@ export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized 
             canvasContext.current.fillText((i + 1).toString(), x, y);
           }
       }
-    };
-    
+    }
     
     // modifies hex colors to darken or lighten them
     // ex: alterHex(strokeColors[0], 60, 'dec'); // decrement all colors by 60 (use 'inc' to increment)
@@ -166,55 +204,6 @@ export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized 
       }
       
       return '#' + color.join('');
-    };
-    
-  
-    // linear normalization for KanjiCanvas["recordedPattern.current_" + id]
-    const normalizeLinear = () => {
-      const normalizedPattern = new Array();
-      const newHeight = 256;
-      const newWidth = 256;
-      let xMin = 256;
-      let xMax = 0;
-      let yMin = 256;
-      let yMax = 0;
-      // first determine drawn character width / length
-      for (let i = 0; i < recordedPattern.current.length; i++) {
-        const stroke_i = recordedPattern.current[i];
-        for (let j = 0; j < stroke_i.length; j++) {
-          const x = stroke_i[j][0];
-          const y = stroke_i[j][1];
-          if (x < xMin) {
-            xMin = x;
-          }
-          if (x > xMax) {
-            xMax = x;
-          }
-          if (y < yMin) {
-            yMin = y;
-          }
-          if (y > yMax) {
-            yMax = y;
-          }
-        }
-      }
-      const oldHeight = Math.abs(yMax - yMin);
-      const oldWidth  = Math.abs(xMax - xMin);
-  
-      for (let i = 0; i < recordedPattern.current.length; i++) {
-        const stroke_i = recordedPattern.current[i];
-        const normalized_stroke_i = [];
-        for (let j = 0; j < stroke_i.length; j++) {
-          const x = stroke_i[j][0];
-          const y = stroke_i[j][1];
-          const xNorm = (x - xMin) * (newWidth / oldWidth);
-          const yNorm = (y - yMin) * (newHeight / oldHeight);
-          normalized_stroke_i.push([xNorm, yNorm]);
-        }
-        normalizedPattern.push(normalized_stroke_i);
-      }
-      recordedPattern.current = normalizedPattern;
-      redraw();
     };
     
      // helper functions for moment normalization 
@@ -790,7 +779,7 @@ export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized 
         map = completeMap(extractedFeatures, refPatterns[0][2], endPointDistance, map);
         const candidates = coarseClassification(extractedFeatures);
         
-        redraw();
+        drawStrokeNumbers();
 
         const refinedClassfications =  refineClassification(extractedFeatures, candidates);
 
@@ -818,12 +807,20 @@ export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized 
         }
     
         recordedPattern.current.pop();
+
+        if (onUndo) {
+          onUndo();
+        }
     };
 
 
     const erase = () => {
       clearCanvas();  
       recordedPattern.current = [];
+
+      if (onErase) {
+        onErase();
+      }
     };
     
     const drawAxis = (startPosition, endPosition) => {
@@ -874,13 +871,11 @@ export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized 
         erase,
         undo: deleteLast
     }))
-    
 
     return (
         <canvas
             ref={canvasRef}
-            width={width}
-            height={height}
+            style={{ height: '100%', width: '100%'}}
             onMouseMove={ findxy('move') }    
             onMouseDown={ findxy('down') }
             onMouseUp={ findxy('up') }
@@ -895,9 +890,9 @@ export const KanjiCanvas = forwardRef(({ axesColor, width, height, onRecognized 
 
 KanjiCanvas.propTypes = {
     axesColor: PropTypes.string,
-    width: PropTypes.string,
-    height: PropTypes.string,
-    onRecognized: PropTypes.func
+    onRecognized: PropTypes.func,
+    onErase: PropTypes.func,
+    onUndo: PropTypes.func,
 }
 
 export const useKanjiCanvas = () => {
