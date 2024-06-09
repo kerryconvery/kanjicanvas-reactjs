@@ -1,18 +1,24 @@
 import React from 'react'
 import { KanjiCanvas, useKanjiCanvas } from "./kanji-canvas/KanjiCanvas";
+import { KanjiSelector } from './KanjiSelector'
 
 const App = () => {
-    const { recognize, erase, undo, canvasRef } = useKanjiCanvas();
+    const { recognize, erase, undo, writeKanji, canvasRef } = useKanjiCanvas();
+
 
     const onKanjiRecognized = (matchedKanji) => {
         console.log('matched kanji', matchedKanji)
     }
 
+    const onSelecKanji = (kanji) => {
+        writeKanji(kanji)
+    }
     return (
         <div className='canvas-box' style={{  margin: 'auto' }}>
             <button onClick={recognize}>Recognize</button>
             <button onClick={erase}>Erase</button>
-            <button onClick={undo}>Undo</button>
+            <button onClick={undo} style={{ marginRight: '2rem' }} >Undo</button>
+            <KanjiSelector onSelect={onSelecKanji}/>
             <div style={{
                 position: 'relative',
                 borderStyle: 'solid',

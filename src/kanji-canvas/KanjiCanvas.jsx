@@ -315,7 +315,7 @@ export const KanjiCanvas = forwardRef(({ axesColor, onRecognized, onErase, onUnd
       };
   
       // main function for moment normalization
-      const momentNormalize = () => {
+      const momentNormalize = (stokesData) => {
         const newHeight = 256;
         const newWidth = 256;
         let xMin = newWidth;
@@ -323,7 +323,7 @@ export const KanjiCanvas = forwardRef(({ axesColor, onRecognized, onErase, onUnd
         let yMin = newHeight;
         let yMax = 0;
         
-        for (const stroke of recordedPattern.current) {
+        for (const stroke of stokesData) {
           for (const [x, y] of stroke) {
             if (x < xMin) {
               xMin = x;
@@ -357,9 +357,9 @@ export const KanjiCanvas = forwardRef(({ axesColor, onRecognized, onErase, onUnd
         const xOffset = (newWidth - aranWidth) / 2;
         const yOffset = (newHeight - aranHeight) / 2;
         
-        const m00_ = m00(recordedPattern.current);
-        const m01_ = m01(recordedPattern.current);
-        const m10_ = m10(recordedPattern.current);
+        const m00_ = m00(stokesData);
+        const m01_ = m01(stokesData);
+        const m10_ = m10(stokesData);
 
         const xc = m10_ / m00_;
         const yc = m01_ / m00_;
@@ -367,13 +367,13 @@ export const KanjiCanvas = forwardRef(({ axesColor, onRecognized, onErase, onUnd
         const xc_half = aranWidth / 2;
         const yc_half = aranHeight / 2;
         
-        const mu20_ = mu20(recordedPattern.current, xc);
-        const mu02_ = mu02(recordedPattern.current, yc);
+        const mu20_ = mu20(stokesData, xc);
+        const mu02_ = mu02(stokesData, yc);
         
         const alpha = aranWidth / (4 * Math.sqrt(mu20_ / m00_)) || 0;
         const beta = aranHeight / (4 * Math.sqrt(mu02_ / m00_)) || 0;
         const nf = [];
-        for (const stroke of recordedPattern.current) {
+        for (const stroke of stokesData) {
           const nsi = stroke.map(([x, y]) => {
             const newX = alpha * (x - xc) + xc_half;
             const newY = beta * (y - yc) + yc_half;
@@ -773,7 +773,7 @@ export const KanjiCanvas = forwardRef(({ axesColor, onRecognized, onErase, onUnd
       };
 
       const recognize = () => {
-        const mn = momentNormalize();
+        const mn = momentNormalize(recordedPattern.current)
         const extractedFeatures = extractFeatures(mn, 20.);
         let map = getMap(extractedFeatures, refPatterns[0][2], endPointDistance);
         map = completeMap(extractedFeatures, refPatterns[0][2], endPointDistance, map);
@@ -822,7 +822,41 @@ export const KanjiCanvas = forwardRef(({ axesColor, onRecognized, onErase, onUnd
         onErase();
       }
     };
-    
+
+    const writeKanji = (kanji) => {
+      const characterScale = 0.5;
+
+      clearCanvas();
+      
+      let fontSize = canvasElement.current.height * characterScale; // Start with 75% of the canvas height
+      
+      canvasContext.current.font = `${fontSize}px serif`;
+  
+      // Measure text and adjust font size
+      let textMetrics = canvasContext.current.measureText(kanji);
+      let textWidth = textMetrics.width;
+
+      while (textWidth > canvasElement.current.width * characterScale) {
+        fontSize *= characterScale * (canvasElement.current.width / textWidth);
+        canvasContext.current.font = `${fontSize}px serif`;
+
+        textMetrics = canvasContext.current.measureText(kanji);
+        textWidth = textMetrics.width;
+      }
+  
+      // Calculate position for vertical centering
+      const textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+      const x = (canvasElement.current.width - textWidth) / 2;
+      const y = (canvasElement.current.height + textHeight) / 2 - textMetrics.actualBoundingBoxDescent;
+  
+      // Set text style
+      canvasContext.current.fillStyle = 'black'; // Change the color as needed
+  
+      // Draw the text
+      canvasContext.current.fillText(kanji, x, y);
+    }
+
+
     const drawAxis = (startPosition, endPosition) => {
         canvasContext.current.beginPath();
         canvasContext.current.moveTo(startPosition.x, startPosition.y);
@@ -869,7 +903,8 @@ export const KanjiCanvas = forwardRef(({ axesColor, onRecognized, onErase, onUnd
     useImperativeHandle(ref, () => ({
         recognize,
         erase,
-        undo: deleteLast
+        undo: deleteLast,
+        writeKanji
     }))
 
     return (
@@ -902,6 +937,7 @@ export const useKanjiCanvas = () => {
         recognize: () => canvasRef.current.recognize(),
         erase: () => canvasRef.current.erase(),
         undo: () => canvasRef.current.undo(),
+        writeKanji: (kanji) => canvasRef.current.writeKanji(kanji),
         canvasRef,
     }
 }
